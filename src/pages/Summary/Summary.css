@@ -1,0 +1,21 @@
+.btn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  padding: 8px;
+  border: none;
+  outline: none;
+  background: none;
+  border-radius: 5px;
+  text-decoration: none;
+  background-color: #19524b;
+  
+  .icon-block {
+    padding-right: 10px;
+  }
+  &:hover {
+    box-shadow: 0 0 10px rgba(45, 216, 219, 0.5);
+  }
+}

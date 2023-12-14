@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Speech to Text</title>
+</head>
+<body>
+    <h1>Speech to Text</h1>
+    
+    <button id="startRecording">Start Recording</button>
+    <button id="stopRecording" disabled>Stop Recording</button>
+
+    <div id="transcription"></div>
+
+    <script>
+        const startRecordingButton = document.getElementById('startRecording');
+        const stopRecordingButton = document.getElementById('stopRecording');
+        const transcriptionDiv = document.getElementById('transcription');
+        let audioChunks = [];
+
+        const startRecording = () => {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    const mediaRecorder = new MediaRecorder(stream);
+                    
+                    mediaRecorder.ondataavailable = event => {
+                        if (event.data.size > 0) {
+                            audioChunks.push(event.data);
+                        }
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+
+                        const formData = new FormData();
+                        formData.append('audio_data', audioBlob, 'audio.wav');
+
+                        fetch('/transcribe-audio', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            transcriptionDiv.innerText = `Transcription: ${data.transcription}`;
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            transcriptionDiv.innerText = 'An error occurred during transcription.';
+                        });
+                        
+                        audioChunks = [];
+                    };
+
+                    startRecordingButton.disabled = true;
+                    stopRecordingButton.disabled = false;
+                    mediaRecorder.start();
+                })
+                .catch(error => {
+                    console.error('Error accessing microphone:', error);
+                });
+        };
+
+        const stopRecording = () => {
+            mediaRecorder.stop();
+            startRecordingButton.disabled = false;
+            stopRecordingButton.disabled = true;
+        };
+
+        startRecordingButton.addEventListener('click', startRecording);
+        stopRecordingButton.addEventListener('click', stopRecording);
+    </script>
+</body>
+</html>
